@@ -49,12 +49,14 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
-// Bundles the shared server core (../../app, i.e. the same server.js/views/public
-// used by the docker-compose deployment) plus the SQLite schema (../../db/init.sqlite.sql)
-// and Android-only glue (../nodejs-project-template: entry-android.js, an android-flavored
-// package.json without `pg`, and a no-op public/sync.js) into one self-contained
-// nodejs-project folder under assets, matching the repo's own app/ + db/ layout one
-// level deeper. A Sync task (not Copy) so stale files from a previous bundle don't linger.
+// Bundles the shared server core (../../app -- a pure JSON /api/* backend, no
+// views/HTML; that's what the docker-compose deployment runs too) plus the SQLite
+// schema (../../db/init.sqlite.sql) and Android-only glue (../nodejs-project-template:
+// entry-android.js, an android-flavored package.json without `pg`, the *Pages.js HTML
+// route files, views/, page-only public/*.js, and a no-op public/sync.js) into one
+// self-contained nodejs-project folder under assets, matching the repo's own app/ + db/
+// layout one level deeper. A Sync task (not Copy) so stale files from a previous bundle
+// don't linger.
 def nodeProjectDir = file('src/main/assets/nodejs-project')
 
 tasks.register('bundleNodeProject', Sync) {
@@ -63,8 +65,6 @@ tasks.register('bundleNodeProject', Sync) {
         exclude 'node_modules/**'
         exclude 'package.json'
         exclude 'package-lock.json'
-        exclude 'public/sw.js'
-        exclude 'public/sync.js'
         exclude 'data.sqlite3'
         exclude 'Dockerfile'
     }

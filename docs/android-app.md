@@ -12,8 +12,19 @@ location, JDK pinning, etc.), still current.
 
 ## How it's put together
 
-- **`app/`** is the shared server core: `server.js`, `views/`, `public/`, `db/`. Used
-  as-is by both deployments.
+- **`app/`** is the shared server core, and it's a pure JSON `/api/*` backend --
+  no view engine, no `views/`, no `public/` static assets. `server.js` is the
+  bootstrap (express setup, mounts `routes/*`, error handler, `start()`), `lib/` holds
+  cross-cutting helpers (date/week utilities, SSE broadcast, i18n middleware), `routes/`
+  has one router per domain (plan, recipes, ingredients, shopping list) exposing only
+  `/api/*`. Used as-is by both deployments -- the docker-compose deployment runs exactly
+  this, nothing more. Android needs an actual HTML UI for its WebView, which it gets by
+  layering `android/nodejs-project-template/` on top at build time (see below): that
+  overlay adds `views/`, page-only `public/*.js`, and a `*Pages.js` route file per
+  domain (e.g. `routes/planPages.js`) that imports the matching domain's data functions
+  from the shared `app/routes/*.js` rather than duplicating them. `server.js` only
+  mounts the view engine, static serving, and these `*Pages` routers when
+  `isAndroidBuild` is true.
 - **`app/db/`** is the storage adapter (`pg-adapter.js` for the docker-compose deployment,
   `sqlite-adapter.js` for Android), selected via `DB_DRIVER`. Both expose the same
   `{ query, transaction, ping }` shape so `server.js`'s route logic never needs to know
@@ -27,9 +38,14 @@ location, JDK pinning, etc.), still current.
 - **`android/nodejs-project-template/`** is Android-only glue that gets merged on top of
   a copy of `app/` at build time (see `android/app/build.gradle`'s `bundleNodeProject`
   task): `entry-android.js` (sets `DB_DRIVER=sqlite`, `DB_PATH`, `HOST=127.0.0.1` before
-  requiring the real `server.js`), an Android-flavored `package.json` (no `pg`), and a
-  no-op `public/sync.js` replacing the browser's offline-sync engine (unnecessary here
-  since the embedded server never actually goes down while the app is foregrounded).
+  requiring the real `server.js`), an Android-flavored `package.json` (no `pg`), the
+  Android-only UI itself (`views/`, page-only `public/*.js` like `plan.js`/`recipes.js`,
+  and `routes/*Pages.js`), and a no-op `public/sync.js` replacing the browser's
+  offline-sync engine (unnecessary here since the embedded server never actually goes
+  down while the app is foregrounded, and there's exactly one writer to the local
+  SQLite db). Since `Sync`'s `from()` blocks apply in order and later ones win on path
+  collision, this template is copied *after* `app/`, which is how it can add files
+  `app/` doesn't have (the whole UI) without needing to override anything.
 - **`MainActivity.java`** starts the embedded Node process on a background thread, polls
   `/api/ping` until it responds, then loads the WebView.
 
