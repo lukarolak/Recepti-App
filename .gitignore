@@ -1,0 +1,13 @@
+node_modules/
+
+# Android build outputs / vendored native runtime
+android/app/libnode/
+android/app/.cxx/
+android/app/build/
+android/.gradle/
+android/.idea/
+*.iml
+local.properties
+
+# Claude Code local (machine-specific) settings
+.claude/settings.local.json

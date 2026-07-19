@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This app talks to its own embedded server over loopback, plus an arbitrary
+     home-WiFi-LAN central server address the user enters in Settings (an IP that
+     can't be known ahead of time, so it can't be scoped to specific domains the way
+     127.0.0.1 could). Both are plain HTTP: the central docker-compose deployment
+     has no TLS setup, and never will need one since it's never exposed past the
+     home LAN. This is a personal, sideloaded app (not distributed via Play Store),
+     so allowing cleartext broadly here is an accepted tradeoff, not an oversight. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

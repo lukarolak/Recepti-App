@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <%- include('partials/theme-init') %>
+  <title><%= t('recipes.title') %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <h1><%= t('recipes.heading') %></h1>
+
+  <div class="recipes">
+    <% recipes.forEach(function(r) { %>
+      <details class="recipe">
+        <summary><%= r.name %></summary>
+        <p><strong><%= t('recipes.ingredientsLabel') %></strong></p>
+        <% if (r.ingredients.length === 0) { %>
+          <p class="empty"><%= t('recipes.noIngredientsListed') %></p>
+        <% } else { %>
+          <ul class="ingredient-list">
+            <% r.ingredients.forEach(function(ing) { %>
+              <li><%= [ing.quantity, ing.default_unit].filter(Boolean).join(' ') %> <%= ing.name %></li>
+            <% }); %>
+          </ul>
+        <% } %>
+        <p><strong><%= t('recipes.instructionsLabel') %></strong><br><%= r.instructions %></p>
+        <div class="recipe-actions">
+          <a href="/recipes/<%= r.id %>/edit" class="button-link"><%= t('recipes.edit') %></a>
+          <form action="/recipes/<%= r.id %>/delete" method="POST" onsubmit="return confirm('<%= t('recipes.confirmDelete') %>')">
+            <button type="submit" class="danger"><%= t('recipes.delete') %></button>
+          </form>
+        </div>
+      </details>
+    <% }); %>
+  </div>
+
+  <h2><%= t('recipes.addHeading') %></h2>
+  <form action="/recipes" method="POST" class="add-form">
+    <label>
+      <%= t('recipes.name') %>
+      <input type="text" name="name" required>
+    </label>
+
+    <%- include('partials/ingredient-fieldset', { prefillIngredients: [] }) %>
+
+    <label>
+      <%= t('recipes.instructions') %>
+      <textarea name="instructions" rows="4"></textarea>
+    </label>
+    <button type="submit"><%= t('recipes.addButton') %></button>
+  </form>
+  <script src="/recipes.js" defer></script>
+</body>
+</html>

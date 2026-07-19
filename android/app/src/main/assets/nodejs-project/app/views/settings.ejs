@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <%- include('partials/theme-init') %>
+  <title><%= t('settings.title') %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+
+<body>
+  <%- include('partials/nav') %>
+
+    <h1><%= t('settings.title') %></h1>
+
+    <h2><%= t('settings.appearance') %></h2>
+    <div class="add-form">
+      <label>
+        <%= t('settings.theme') %>
+        <select id="theme-select">
+          <option value="system"><%= t('settings.themeSystem') %></option>
+          <option value="light"><%= t('settings.themeLight') %></option>
+          <option value="dark"><%= t('settings.themeDark') %></option>
+        </select>
+      </label>
+      <label>
+        <%= t('settings.language') %>
+        <select id="language-select">
+          <% supportedLangs.forEach(function(code) { %>
+            <option value="<%= code %>" <%= lang === code ? 'selected' : '' %>><%= langNames[code] %></option>
+          <% }); %>
+        </select>
+      </label>
+    </div>
+
+    <h2><%= t('settings.collaborationAddress') %></h2>
+    <p class="hint">
+      <%= t('settings.collaborationHint') %>
+    </p>
+
+    <form action="/settings" method="POST" class="add-form">
+      <label>
+        <%= t('settings.collaborationAddressLabel') %>
+        <input type="text" name="centralUrl" placeholder="http://192.168.1.50:3000" value="<%= centralUrl %>">
+      </label>
+      <button type="submit"><%= t('settings.save') %></button>
+    </form>
+
+    <% if (centralConfigured) { %>
+      <h2><%= t('settings.syncStatus') %></h2>
+      <p>
+        <strong>
+          <%= syncLabel %>
+        </strong>
+        <% if (status.lastSyncAt) { %>
+          <br><%= t('settings.lastSynced') %><%= new Date(status.lastSyncAt).toLocaleString() %>
+            <% } %>
+      </p>
+
+      <form action="/settings/sync-now" method="POST">
+        <button type="submit"><%= t('settings.syncNow') %></button>
+      </form>
+    <% } %>
+    <script src="/settings.js" defer></script>
+</body>
+
+</html>

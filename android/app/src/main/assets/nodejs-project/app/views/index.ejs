@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <%- include('partials/theme-init') %>
+  <title><%= t('plan.title') %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <div class="page-heading-row">
+    <h1><%= isCurrentWeek ? t('plan.heading') : t('plan.headingSelected') %></h1>
+    <%- include('partials/week-nav', { weekNavBasePath: '/' }) %>
+  </div>
+
+  <div class="plan-list" id="plan-table" data-week-monday="<%= weekMonday %>">
+    <% dates.forEach(function(date, i) { %>
+      <% const day = days[i]; %>
+      <% const entries = planByDate[date] || []; %>
+      <div class="plan-day" data-date="<%= date %>">
+        <div class="plan-day-header">
+          <span class="plan-day-name"><%= t('day.' + day) %></span>
+          <span class="row-sync-badge" hidden><%= t('plan.pendingSync') %></span>
+        </div>
+        <div class="recipe-display">
+          <% if (entries.length === 0) { %>
+            <span class="empty"><%= t('plan.nothingPlanned') %></span>
+          <% } %>
+          <ul class="plan-recipe-list">
+            <% entries.forEach(function(entry) { %>
+              <li data-entry-id="<%= entry.id %>" data-recipe-id="<%= entry.recipe_id %>">
+                <span class="plan-recipe-name"><%= entry.recipe_name %></span>
+                <button type="button" class="remove-entry-btn" title="<%= t('plan.remove') %>" aria-label="<%= t('plan.remove') %>">&times;</button>
+              </li>
+            <% }); %>
+          </ul>
+        </div>
+        <form class="plan-add-form" data-date="<%= date %>">
+          <select name="recipe_id">
+            <option value=""><%= t('plan.noneOption') %></option>
+            <% recipes.forEach(function(r) { %>
+              <option value="<%= r.id %>"><%= r.name %></option>
+            <% }); %>
+          </select>
+          <button type="submit"><%= t('plan.add') %></button>
+        </form>
+      </div>
+    <% }); %>
+  </div>
+
+  <% if (recipes.length === 0) { %>
+    <p><%= t('plan.noRecipesYet') %><a href="/recipes"><%= t('plan.addOne') %></a>.</p>
+  <% } %>
+
+  <script src="/plan.js" defer></script>
+</body>
+</html>

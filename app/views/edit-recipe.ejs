@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <%- include('partials/theme-init') %>
+  <title><%= t('recipes.editTitle') %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <h1><%= t('recipes.editTitle') %></h1>
+
+  <form action="/recipes/<%= recipe.id %>" method="POST" class="add-form">
+    <label>
+      <%= t('recipes.name') %>
+      <input type="text" name="name" required value="<%= recipe.name %>">
+    </label>
+
+    <%- include('partials/ingredient-fieldset', { prefillIngredients: ingredients }) %>
+
+    <label>
+      <%= t('recipes.instructions') %>
+      <textarea name="instructions" rows="4"><%= recipe.instructions %></textarea>
+    </label>
+
+    <div class="recipe-actions">
+      <button type="submit"><%= t('recipes.saveChanges') %></button>
+      <a href="/recipes" class="button-link secondary"><%= t('recipes.cancel') %></a>
+    </div>
+  </form>
+</body>
+</html>

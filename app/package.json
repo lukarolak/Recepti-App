@@ -1,0 +1,15 @@
+{
+  "name": "recipe-planner",
+  "version": "1.0.0",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "node-sqlite3-wasm": "^0.8.59",
+    "pg": "^8.12.0"
+  }
+}

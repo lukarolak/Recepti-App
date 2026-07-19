@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Android: Start Emulator",
+      "detail": "Boots the recepti_test AVD. Wait for it to finish booting before installing.",
+      "type": "shell",
+      "command": "D:\\devtools\\android-sdk\\emulator\\emulator.exe -avd recepti_test",
+      "options": {
+        "env": {
+          "ANDROID_SDK_ROOT": "D:\\devtools\\android-sdk",
+          "ANDROID_AVD_HOME": "D:\\devtools\\android-home\\avd"
+        }
+      },
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Ensure Emulator Ready",
+      "detail": "Starts the recepti_test AVD only if no device/emulator is already connected, then waits for it to finish booting before returning.",
+      "type": "shell",
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${workspaceFolder}/.vscode/scripts/ensure-emulator.ps1"],
+      "options": {
+        "env": {
+          "ANDROID_SDK_ROOT": "D:\\devtools\\android-sdk",
+          "ANDROID_AVD_HOME": "D:\\devtools\\android-home\\avd"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Build & Install Debug",
+      "detail": "Bundles app/ into the nodejs-project assets, then builds and installs the debug APK on whatever device/emulator adb currently sees.",
+      "type": "shell",
+      "command": "./gradlew.bat installDebug",
+      "options": {
+        "cwd": "${workspaceFolder}/android",
+        "env": {
+          "ANDROID_HOME": "D:\\devtools\\android-sdk",
+          "ANDROID_SDK_ROOT": "D:\\devtools\\android-sdk",
+          "GRADLE_USER_HOME": "D:\\devtools\\gradle-home",
+          "PATH": "C:\\Program Files\\nodejs;${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Launch App",
+      "detail": "Starts MainActivity on the connected device/emulator (app must already be installed).",
+      "type": "shell",
+      "command": "D:\\devtools\\android-sdk\\platform-tools\\adb.exe shell am start -n com.recepti.app/.MainActivity",
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Run (Build, Install & Launch)",
+      "detail": "One-shot: starts the emulator if needed and waits for it to boot, then builds, installs, and launches.",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Android: Ensure Emulator Ready", "Android: Build & Install Debug", "Android: Launch App"],
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true }
+    },
+    {
+      "label": "Android: Logcat",
+      "detail": "Streams logs from the app: MainActivity's debug tag plus the embedded Node process (console.log from server.js/centralSync.js shows up as NODEJS-MOBILE:I). On the emulator, NODEJS-MOBILE also carries some unrelated software-GL renderer noise at warning/error level -- harmless, ignore it.",
+      "type": "shell",
+      "command": "D:\\devtools\\android-sdk\\platform-tools\\adb.exe logcat -s ReceptiDebug:D NODEJS-MOBILE:I",
+      "isBackground": true,
+      "presentation": { "panel": "dedicated", "reveal": "always" },
+      "problemMatcher": []
+    },
+    {
+      "label": "Android: Uninstall App",
+      "detail": "Removes the app (and its local SQLite data) from the device/emulator -- use after a schema change, since the SQLite adapter only ever runs CREATE TABLE IF NOT EXISTS and won't migrate an existing install.",
+      "type": "shell",
+      "command": "D:\\devtools\\android-sdk\\platform-tools\\adb.exe uninstall com.recepti.app",
+      "problemMatcher": []
+    }
+  ]
+}

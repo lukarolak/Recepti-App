@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Android: Run App",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "echo Launched.",
+      "preLaunchTask": "Android: Run (Build, Install & Launch)"
+    },
+    {
+      "name": "Android: Relaunch (skip build)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "echo Launched.",
+      "preLaunchTask": "Android: Launch App"
+    }
+  ]
+}

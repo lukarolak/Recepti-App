@@ -1,0 +1,25 @@
+<%
+  // weekNavBasePath ('/' or '/shopping-list') and optional weekNavExtraParams (e.g.
+  // '&days=5', to preserve the day-count selector across a week change) are passed in
+  // by whichever page includes this partial. Both pages read/write the same
+  // "selectedWeek" cookie server-side (see resolveWeekMonday in server.js), so
+  // changing the week here propagates to the other page too.
+  const extraParams = typeof weekNavExtraParams !== 'undefined' ? weekNavExtraParams : '';
+%>
+<div class="week-nav">
+  <div class="week-nav-controls">
+    <% if (isCurrentWeek) { %>
+      <span class="week-nav-arrow week-nav-arrow-disabled" aria-hidden="true">&lsaquo;</span>
+    <% } else { %>
+      <a href="<%= weekNavBasePath %>?week=<%= prevWeekMonday %><%= extraParams %>" class="week-nav-arrow" aria-label="<%= t('plan.prevWeek') %>">&lsaquo;</a>
+    <% } %>
+    <span class="week-nav-number" title="<%= t('plan.weekLabel', { number: weekNumber }) %>"><%= weekNumber %></span>
+    <a href="<%= weekNavBasePath %>?week=<%= nextWeekMonday %><%= extraParams %>" class="week-nav-arrow" aria-label="<%= t('plan.nextWeek') %>">&rsaquo;</a>
+  </div>
+  <%
+    // The bare week number doesn't tell most people which actual dates it covers --
+    // this is the main way the widget communicates "this plan is for a specific
+    // calendar week", not necessarily the current one.
+  %>
+  <div class="week-nav-range"><%= weekRangeLabel %></div>
+</div>

@@ -1,0 +1,17 @@
+<script>
+  // Runs synchronously in <head>, before first paint, so an explicit theme choice
+  // (set in Settings, Android build only) applies immediately with no flash. If
+  // nothing's been chosen, this does nothing and the CSS's prefers-color-scheme
+  // media query handles it automatically -- see public/style.css.
+  (function () {
+    try {
+      var theme = localStorage.getItem('theme');
+      if (theme === 'dark' || theme === 'light') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+    } catch (err) {
+      // localStorage can throw in some contexts (e.g. privacy mode) -- fall back
+      // silently to the system-preference default.
+    }
+  })();
+</script>

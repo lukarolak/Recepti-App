@@ -1,0 +1,107 @@
+<fieldset class="ingredients-field">
+  <legend><%= t('ingredientFieldset.legend') %></legend>
+  <p class="field-hint"><%= t('ingredientFieldset.hint') %></p>
+  <div id="ingredient-rows">
+    <% var rows = (typeof prefillIngredients !== 'undefined' && prefillIngredients.length > 0)
+         ? prefillIngredients
+         : [{ name: '', quantity: '' }]; %>
+    <% rows.forEach(function(row, i) { %>
+      <div class="ingredient-row">
+        <div class="ingredient-row-main">
+          <input type="text" name="rows[<%= i %>][name]" list="ingredient-options" placeholder="<%= t('ingredientFieldset.namePlaceholder') %>" class="ingredient-name-input" value="<%= row.name %>">
+          <input type="text" name="rows[<%= i %>][quantity]" placeholder="<%= t('ingredientFieldset.qtyPlaceholder') %>" class="qty-input" value="<%= row.quantity %>">
+          <select name="rows[<%= i %>][unit]" class="unit-select">
+            <option value="">—</option>
+            <% units.forEach(function(u) { %>
+              <option value="<%= u %>" <%= row.unit === u ? 'selected' : '' %>><%= u %></option>
+            <% }); %>
+          </select>
+          <button type="button" class="remove-row" aria-label="<%= t('ingredientFieldset.removeAriaLabel') %>">&times;</button>
+        </div>
+        <div class="new-ingredient-fields" hidden>
+          <span class="new-ingredient-label"><%= t('ingredientFieldset.newIngredientLabel') %></span>
+          <label class="inline-label checkbox-inline">
+            <input type="checkbox" name="rows[<%= i %>][perishable]">
+            <%= t('ingredientFieldset.perishable') %>
+          </label>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+  <button type="button" id="add-row"><%= t('ingredientFieldset.addRow') %></button>
+</fieldset>
+
+<datalist id="ingredient-options">
+  <% ingredientNames.forEach(function(n) { %>
+    <option value="<%= n %>">
+  <% }); %>
+</datalist>
+
+<script>
+  const ingredientUnitsByLowerName = {};
+  Object.entries(<%- JSON.stringify(ingredientUnits) %>).forEach(([n, unit]) => {
+    ingredientUnitsByLowerName[n.toLowerCase()] = unit;
+  });
+  const rowsContainer = document.getElementById('ingredient-rows');
+
+  function updateRow(row) {
+    const nameInput = row.querySelector('.ingredient-name-input');
+    const unitSelect = row.querySelector('.unit-select');
+    const newFields = row.querySelector('.new-ingredient-fields');
+    const name = nameInput.value.trim().toLowerCase();
+    const isKnown = Object.prototype.hasOwnProperty.call(ingredientUnitsByLowerName, name);
+
+    if (!name) {
+      newFields.hidden = true;
+    } else if (isKnown) {
+      newFields.hidden = true;
+      // Only fill in the ingredient's default if this row doesn't already have a unit
+      // (e.g. a per-recipe override prefilled from an existing recipe) -- never
+      // clobber a value that's already there.
+      if (!unitSelect.value) {
+        unitSelect.value = ingredientUnitsByLowerName[name] || '';
+      }
+    } else {
+      newFields.hidden = false;
+    }
+  }
+
+  function reindexAllRows() {
+    const allRows = rowsContainer.querySelectorAll('.ingredient-row');
+    allRows.forEach((row, index) => {
+      row.querySelectorAll('[name]').forEach((input) => {
+        input.name = input.name.replace(/rows\[\d+\]/, 'rows[' + index + ']');
+      });
+    });
+  }
+
+  document.getElementById('add-row').addEventListener('click', function () {
+    const firstRow = rowsContainer.querySelector('.ingredient-row');
+    const clone = firstRow.cloneNode(true);
+    clone.querySelectorAll('input, select').forEach((el) => {
+      if (el.type === 'checkbox') el.checked = false;
+      else el.value = '';
+    });
+    rowsContainer.appendChild(clone);
+    reindexAllRows();
+    updateRow(clone);
+  });
+
+  rowsContainer.addEventListener('input', function (e) {
+    if (e.target.classList.contains('ingredient-name-input')) {
+      updateRow(e.target.closest('.ingredient-row'));
+    }
+  });
+
+  rowsContainer.addEventListener('click', function (e) {
+    if (e.target.classList.contains('remove-row')) {
+      const allRows = rowsContainer.querySelectorAll('.ingredient-row');
+      if (allRows.length > 1) {
+        e.target.closest('.ingredient-row').remove();
+        reindexAllRows();
+      }
+    }
+  });
+
+  rowsContainer.querySelectorAll('.ingredient-row').forEach(updateRow);
+</script>

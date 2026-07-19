@@ -1,0 +1,605 @@
+* { box-sizing: border-box; }
+
+:root {
+  --color-bg: #fafafa;
+  --color-text: #222;
+  --color-text-muted: #555;
+  --color-text-faint: #777;
+  --color-text-faint-2: #999;
+  --color-text-faint-3: #aaa;
+  --color-link: #2b6cb0;
+  --color-danger: #c53030;
+  --color-success: #2f9e44;
+  --color-warn: #b7791f;
+  --color-warn-bg: #fff3cd;
+  --color-warn-border: #f0c36d;
+  --color-warn-text: #7a5c00;
+  --color-warn-bg-soft: #fff8e6;
+  --color-card-bg: #fff;
+  --color-border: #ddd;
+  --color-border-light: #eee;
+  --color-accent-bg: #f0f4f9;
+  --color-button-text: #fff;
+}
+
+/* Dark mode: system preference is the default signal (no JS required); an explicit
+   choice made in Settings (Android build) stamps data-theme on <html> and wins in
+   both directions -- see partials/theme-init.ejs and public/settings.js. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg: #16181c;
+    --color-text: #e4e4e4;
+    --color-text-muted: #a0a0a0;
+    --color-text-faint: #8a8a8a;
+    --color-text-faint-2: #7a7a7a;
+    --color-text-faint-3: #888;
+    --color-link: #5b9bd5;
+    --color-danger: #e5484d;
+    --color-success: #4caf50;
+    --color-warn: #e3b341;
+    --color-warn-bg: #3a2f14;
+    --color-warn-border: #6b5323;
+    --color-warn-text: #e8c76f;
+    --color-warn-bg-soft: #2a2314;
+    --color-card-bg: #202226;
+    --color-border: #383b40;
+    --color-border-light: #2a2d31;
+    --color-accent-bg: #1f2733;
+    --color-button-text: #fff;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-bg: #16181c;
+  --color-text: #e4e4e4;
+  --color-text-muted: #a0a0a0;
+  --color-text-faint: #8a8a8a;
+  --color-text-faint-2: #7a7a7a;
+  --color-text-faint-3: #888;
+  --color-link: #5b9bd5;
+  --color-danger: #e5484d;
+  --color-success: #4caf50;
+  --color-warn: #e3b341;
+  --color-warn-bg: #3a2f14;
+  --color-warn-border: #6b5323;
+  --color-warn-text: #e8c76f;
+  --color-warn-bg-soft: #2a2314;
+  --color-card-bg: #202226;
+  --color-border: #383b40;
+  --color-border-light: #2a2d31;
+  --color-accent-bg: #1f2733;
+  --color-button-text: #fff;
+}
+
+body {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  max-width: 720px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0;
+  margin-bottom: 1.5rem;
+}
+
+nav a {
+  margin-right: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-link);
+}
+
+.sync-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.sync-spinner {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  display: inline-block;
+  box-sizing: border-box;
+}
+
+.sync-status[data-state="synced"] .sync-spinner {
+  background: var(--color-success);
+}
+
+.sync-status[data-state="offline"] .sync-spinner {
+  background: var(--color-danger);
+}
+
+.sync-status[data-state="syncing"] .sync-spinner {
+  background: transparent;
+  border-color: var(--color-link) var(--color-link) transparent transparent;
+  animation: sync-spin 0.7s linear infinite;
+}
+
+@keyframes sync-spin {
+  to { transform: rotate(360deg); }
+}
+
+.row-sync-badge,
+.pending-sync-mark {
+  font-size: 0.75rem;
+  font-weight: normal;
+  color: var(--color-warn);
+  font-style: italic;
+}
+
+.live-update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: var(--color-warn-bg);
+  border: 1px solid var(--color-warn-border);
+  color: var(--color-warn-text);
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  margin-bottom: 1.25rem;
+}
+
+.live-update-banner button {
+  background: var(--color-warn);
+  padding: 0.35rem 0.75rem;
+}
+
+h1 { margin-top: 0; }
+
+.page-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.week-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.week-nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.week-nav-range {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.week-nav-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 4px;
+  color: var(--color-link);
+  text-decoration: none;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.week-nav-arrow:not(.week-nav-arrow-disabled):hover {
+  background: var(--color-accent-bg);
+}
+
+.week-nav-arrow-disabled {
+  color: var(--color-text-faint-3);
+  cursor: default;
+}
+
+.week-nav-number {
+  min-width: 2.5rem;
+  padding: 0.25rem 0.5rem;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+/* Cards, not a table: a day/recipes/add-control table forces three columns to fight
+   over width, which is exactly what overflows a phone viewport. Stacking each day's
+   controls vertically instead means nothing needs to shrink below a usable size. */
+.plan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.plan-day {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.plan-day-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.plan-day-name {
+  font-weight: 600;
+}
+
+.plan-day .empty {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.plan-recipe-list {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* The empty-state <span> is always immediately followed by the (possibly-empty)
+   list in the markup -- :empty isn't reliable here since EJS leaves whitespace
+   text nodes inside an empty <ul>, so key off the sibling instead. */
+.empty + .plan-recipe-list {
+  margin-bottom: 0;
+}
+
+.plan-recipe-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-accent-bg);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+}
+
+.plan-recipe-name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.remove-entry-btn {
+  padding: 0 0.5rem;
+  line-height: 1.5;
+  background: var(--color-danger);
+  flex-shrink: 0;
+}
+
+.plan-add-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.plan-add-form select {
+  width: auto;
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.plan-add-form button {
+  flex-shrink: 0;
+}
+
+table.ingredients-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2rem;
+}
+
+table.ingredients-table th, table.ingredients-table td {
+  text-align: left;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+table.ingredients-table td.center {
+  text-align: center;
+}
+
+table.ingredients-table select {
+  width: auto;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  margin-top: -0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.empty {
+  color: var(--color-text-faint-2);
+  font-style: italic;
+}
+
+select, input[type="text"], textarea {
+  width: 100%;
+  padding: 0.35rem;
+  font: inherit;
+  color: var(--color-text);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.recipes {
+  margin-bottom: 2rem;
+}
+
+.recipe {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.recipe summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pending-recipe {
+  border-style: dashed;
+  border-color: var(--color-warn);
+}
+
+tr.pending-ingredient td {
+  background: var(--color-warn-bg-soft);
+}
+
+.ingredient-list {
+  margin: 0.25rem 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.ingredients-field {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.ingredients-field legend {
+  font-weight: 600;
+  padding: 0 0.25rem;
+}
+
+#ingredient-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ingredient-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ingredient-row-main {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ingredient-row-main input,
+.ingredient-row-main select {
+  width: 100%;
+}
+
+.new-ingredient-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--color-accent-bg);
+  border: 1px dashed var(--color-link);
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+}
+
+.new-ingredient-fields[hidden] {
+  display: none;
+}
+
+.new-ingredient-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-link);
+}
+
+.inline-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.remove-row {
+  background: transparent;
+  color: var(--color-danger);
+  padding: 0.35rem 0.6rem;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.field-hint {
+  color: var(--color-text-faint);
+  font-size: 0.85rem;
+  margin: 0 0 0.5rem;
+}
+
+.add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.add-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.add-form label.checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  font: inherit;
+  border: none;
+  border-radius: 4px;
+  background: var(--color-link);
+  color: var(--color-button-text);
+  cursor: pointer;
+  width: fit-content;
+}
+
+button.danger {
+  background: var(--color-danger);
+  margin-top: 0.5rem;
+}
+
+.recipe-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.recipe-actions form {
+  margin: 0;
+}
+
+.recipe-actions button.danger {
+  margin-top: 0;
+}
+
+.button-link {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  background: var(--color-link);
+  color: var(--color-button-text);
+  text-decoration: none;
+  font: inherit;
+}
+
+.button-link.secondary {
+  background: transparent;
+  color: var(--color-link);
+  padding: 0.5rem 0;
+}
+
+.days-form {
+  margin-bottom: 1.5rem;
+}
+
+.days-form label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.days-form select {
+  width: auto;
+}
+
+.shopping-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+}
+
+.shopping-list > li {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--color-border-light);
+  gap: 0.4rem;
+}
+
+.item-main {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.item-main form {
+  display: contents;
+}
+
+.item-check {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.shopping-list > li.bought .item-text {
+  text-decoration: line-through;
+  color: var(--color-text-faint-2);
+}
+
+.shopping-list .item-text {
+  font-weight: 600;
+}
+
+.item-recipes {
+  list-style: none;
+  padding: 0;
+  /* Lines up under item-text, past the parent checkbox (1.1rem width + 0.6rem gap) */
+  margin: 0 0 0 1.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+}
+
+.item-recipes label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: normal;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.item-recipes .recipe-bought {
+  text-decoration: line-through;
+  color: var(--color-text-faint-3);
+}

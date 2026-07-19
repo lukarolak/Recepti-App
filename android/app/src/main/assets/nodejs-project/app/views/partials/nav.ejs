@@ -1,0 +1,40 @@
+<nav>
+  <a href="/"><%= t('nav.weeklyPlan') %></a>
+  <a href="/recipes"><%= t('nav.recipes') %></a>
+  <a href="/ingredients"><%= t('nav.ingredients') %></a>
+  <a href="/shopping-list"><%= t('nav.shoppingList') %></a>
+  <% if (typeof isAndroidBuild !== 'undefined' && isAndroidBuild) { %>
+    <a href="/settings"><%= t('nav.settings') %></a>
+  <% } %>
+  <%
+    const isAndroid = typeof isAndroidBuild !== 'undefined' && isAndroidBuild;
+    const configured = typeof centralConfigured !== 'undefined' && centralConfigured;
+    // On the browser/central deployment this is always shown (browser-tab offline-sync
+    // status). On the Android build it doubles as the central-sync indicator, which is
+    // meaningless noise before a collaboration address is even set.
+    const showSyncStatus = !isAndroid || configured;
+    const navSyncState = typeof syncState !== 'undefined' ? syncState : 'synced';
+    const navSyncLabel = typeof syncLabel !== 'undefined' ? syncLabel : t('syncBrowser.synced');
+  %>
+  <% if (showSyncStatus) { %>
+    <span id="sync-status" class="sync-status" data-state="<%= navSyncState %>" title="<%= navSyncLabel %>">
+      <span class="sync-spinner" aria-hidden="true"></span>
+      <span class="sync-label"><%= navSyncLabel %></span>
+    </span>
+  <% } %>
+</nav>
+<script>
+  // App-chrome translations only, for the handful of strings public/*.js renders
+  // itself (offline-queue badges, etc.) -- never used for recipe/ingredient content.
+  window.I18N = <%- i18nDictJson %>;
+  window.t = function (key, params) {
+    let str = Object.prototype.hasOwnProperty.call(window.I18N, key) ? window.I18N[key] : key;
+    if (params) {
+      Object.keys(params).forEach(function (paramKey) {
+        str = str.split('{' + paramKey + '}').join(params[paramKey]);
+      });
+    }
+    return str;
+  };
+</script>
+<script src="/sync.js" defer></script>

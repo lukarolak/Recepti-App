@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <%- include('partials/theme-init') %>
+  <title><%= t('shoppingList.title') %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <%- include('partials/nav') %>
+
+  <div class="page-heading-row">
+    <h1><%= t('shoppingList.title') %></h1>
+    <%- include('partials/week-nav', { weekNavBasePath: '/shopping-list', weekNavExtraParams: '&days=' + daysAhead }) %>
+  </div>
+
+  <form action="/shopping-list" method="GET" class="days-form" id="days-form">
+    <label>
+      <%= t('shoppingList.buyPerishablesPrefix') %>
+      <select name="days" id="days-select" onchange="this.form.requestSubmit()">
+        <% for (let d = 1; d <= maxDays; d++) { %>
+          <option value="<%= d %>" <%= d === daysAhead ? 'selected' : '' %>><%= d %></option>
+        <% } %>
+      </select>
+      <%= daysAhead === 1 ? t('shoppingList.day') : t('shoppingList.days') %> (<%= upcomingDays.map(function(d) { return t('day.' + d); }).join(', ') %>). <%= t('shoppingList.nonPerishableNote') %>
+    </label>
+  </form>
+
+  <div id="shopping-list-root" data-days-ahead="<%= daysAhead %>">
+    <% if (perishable.length === 0 && nonPerishable.length === 0) { %>
+      <p class="empty"><%= t('shoppingList.notPlannedYet') %><a href="/"><%= t('nav.weeklyPlan') %></a>.</p>
+    <% } else { %>
+
+      <% [
+        { title: t('shoppingList.perishableTitle', { days: daysAhead }), items: perishable },
+        {
+          title: isCurrentWeek
+            ? t('shoppingList.nonPerishableTitle')
+            : t('shoppingList.nonPerishableTitleRange', { number: weekNumber }),
+          items: nonPerishable,
+        }
+      ].forEach(function(section) { %>
+        <h2><%= section.title %></h2>
+        <% if (section.items.length === 0) { %>
+          <p class="empty"><%= t('shoppingList.nothingHere') %></p>
+        <% } else { %>
+          <ul class="shopping-list">
+            <% section.items.forEach(function(item) { %>
+              <li class="<%= item.bought ? 'bought' : '' %>" data-ingredient-id="<%= item.ingredientId %>">
+                <div class="item-main">
+                  <form action="/shopping-list/ingredient/<%= item.ingredientId %>" method="POST">
+                    <input type="hidden" name="days" value="<%= daysAhead %>">
+                    <input
+                      type="checkbox"
+                      name="checked"
+                      class="item-check"
+                      title="<%= t('shoppingList.markAllBought') %>"
+                      <%= item.bought ? 'checked' : '' %>
+                    >
+                  </form>
+                  <span class="item-text"><%= [item.quantity, item.unit, item.name].filter(Boolean).join(' ') %></span>
+                </div>
+                <ul class="item-recipes">
+                  <% item.recipes.forEach(function(r) { %>
+                    <li data-recipe-id="<%= r.recipeId %>" data-plan-date="<%= r.planDate %>">
+                      <form action="/shopping-list/items/<%= item.ingredientId %>/<%= r.recipeId %>/<%= encodeURIComponent(r.planDate) %>" method="POST">
+                        <input type="hidden" name="days" value="<%= daysAhead %>">
+                        <label>
+                          <input type="checkbox" name="checked" <%= r.bought ? 'checked' : '' %>>
+                          <span class="<%= r.bought ? 'recipe-bought' : '' %>"><%= [r.quantity, r.unit].filter(Boolean).join(' ') %> — <%= r.recipeName %></span>
+                        </label>
+                      </form>
+                    </li>
+                  <% }); %>
+                </ul>
+              </li>
+            <% }); %>
+          </ul>
+        <% } %>
+      <% }); %>
+
+    <% } %>
+  </div>
+
+  <script src="/shopping.js" defer></script>
+</body>
+</html>

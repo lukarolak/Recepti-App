@@ -1,0 +1,91 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace "com.recepti.app"
+    compileSdkVersion 34
+    defaultConfig {
+        applicationId "com.recepti.app"
+        minSdkVersion 24
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+                arguments "-DANDROID_STL=c++_shared"
+            }
+        }
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+
+    // If you want Gradle to package prebuilt native libraries
+    // with your APK, modify the default source set configuration
+    // to include the directory of your prebuilt .so files as follows.
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'libnode/bin/'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    testImplementation 'junit:junit:4.13.2'
+}
+
+// Bundles the shared server core (../../app, i.e. the same server.js/views/public
+// used by the docker-compose deployment) plus the SQLite schema (../../db/init.sqlite.sql)
+// and Android-only glue (../nodejs-project-template: entry-android.js, an android-flavored
+// package.json without `pg`, and a no-op public/sync.js) into one self-contained
+// nodejs-project folder under assets, matching the repo's own app/ + db/ layout one
+// level deeper. A Sync task (not Copy) so stale files from a previous bundle don't linger.
+def nodeProjectDir = file('src/main/assets/nodejs-project')
+
+tasks.register('bundleNodeProject', Sync) {
+    from('../../app') {
+        into 'app'
+        exclude 'node_modules/**'
+        exclude 'package.json'
+        exclude 'package-lock.json'
+        exclude 'public/sw.js'
+        exclude 'public/sync.js'
+        exclude 'data.sqlite3'
+        exclude 'Dockerfile'
+    }
+    from('../../db') {
+        into 'db'
+        include 'init.sqlite.sql'
+    }
+    from('../nodejs-project-template')
+    into nodeProjectDir
+}
+
+tasks.register('installNodeProjectDeps', Exec) {
+    dependsOn tasks.named('bundleNodeProject')
+    workingDir "${nodeProjectDir}/app"
+    if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+        commandLine 'cmd', '/c', 'npm', 'install'
+    } else {
+        commandLine 'npm', 'install'
+    }
+}
+
+tasks.named('preBuild').configure {
+    dependsOn tasks.named('installNodeProjectDeps')
+}
