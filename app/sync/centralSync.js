@@ -332,22 +332,29 @@ async function syncPlan(centralUrl) {
     localCentralIdsByDate.get(row.plan_date).push(row.central_recipe_id);
   }
 
+  // Pulled first (before pushing) and unioned with what's known locally, so a device
+  // that hasn't seen a date's plan yet -- e.g. right after a collaboration address is
+  // first entered, when the local meal_plan table is still empty -- doesn't blank out
+  // that date on central the moment it pushes below. Without this, the phone's empty
+  // local window would overwrite whatever was already collaboratively planned.
+  const central = await getJson(`${centralUrl}/api/plan?start=${startDate}&days=${PLAN_SYNC_DAYS}`);
+
   // A date whose local recipe(s) haven't linked centrally yet (central_id still NULL)
   // can't be fully expressed to central at all this cycle -- those entries push as
   // unplanned and catch up once that recipe itself syncs (recipes/ingredients sync
   // first each cycle, see runSyncCycle, so this is usually just one cycle's delay).
   const plan = {};
   for (const date of dates) {
-    plan[date] = localCentralIdsByDate.get(date) || [];
+    const centralIds = (central.planByDate[date] || []).map((entry) => entry.recipe_id);
+    const localIds = localCentralIdsByDate.get(date) || [];
+    plan[date] = [...new Set([...centralIds, ...localIds])];
   }
   await sendJson(`${centralUrl}/api/plan`, 'PUT', { start: startDate, days: PLAN_SYNC_DAYS, plan });
 
-  const central = await getJson(`${centralUrl}/api/plan?start=${startDate}&days=${PLAN_SYNC_DAYS}`);
   for (const date of dates) {
-    const entries = central.planByDate[date] || [];
     await db.query('DELETE FROM meal_plan WHERE plan_date = ?', [date]);
-    for (const entry of entries) {
-      const localRecipe = await db.query('SELECT id FROM recipes WHERE central_id = ?', [entry.recipe_id]);
+    for (const centralRecipeId of plan[date]) {
+      const localRecipe = await db.query('SELECT id FROM recipes WHERE central_id = ?', [centralRecipeId]);
       if (localRecipe.rows.length === 0) continue; // not linked locally yet -- catch up next cycle
       await db.query('INSERT INTO meal_plan (plan_date, recipe_id) VALUES (?, ?)', [date, localRecipe.rows[0].id]);
     }
